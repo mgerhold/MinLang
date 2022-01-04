@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 project(MinLang)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
     # enable code analysis
@@ -18,7 +19,8 @@ set(TARGET_LIST
         MinLang
         )
 
-add_executable(MinLang main.cpp Lexer.cpp Lexer.hpp Token.hpp MinLang.hpp tests/Lexer.test.cpp)
+add_library(MinLang STATIC src/main.cpp src/Lexer.cpp src/Lexer.hpp src/Token.hpp src/MinLang.hpp src/LexerError.hpp)
+target_include_directories(MinLang PUBLIC ${PROJECT_SOURCE_DIR}/src)
 
 foreach (target ${TARGET_LIST})
     # set warning levels
