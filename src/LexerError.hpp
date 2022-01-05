@@ -13,7 +13,7 @@ public:
     LexerError(uz line, uz column, const std::string& message)
         : mWhat{ std::format("{} (line {}, column {})", message, line, column) } { }
 
-    [[nodiscard]] const char* what() const override {
+    [[nodiscard]] const char* what() const noexcept override {
         return mWhat.c_str();
     }
 

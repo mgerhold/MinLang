@@ -2,46 +2,41 @@
 // Created by coder2k on 04.01.2022.
 //
 
+#include <array>
+#include <iostream>
+#include <unordered_map>
+#include <utility>
 #include "Lexer.hpp"
 
 using namespace std::string_view_literals;
 
-std::vector<std::unique_ptr<Token>> Lexer::getTokens() {
-    while (not isAtEnd()) {
-        switch (peek()) {
-            case '=':
+std::vector<Token> Lexer::getTokens() {
+    try {
+        while (not isAtEnd()) {
+            const auto singleCharToken = tokenTypeFor(peek());
+            if (singleCharToken != TokenType::None) {
+                addToken(singleCharToken, mSource.substr(mCurrent, 1));
                 consume();
-                addToken<Equals>("="sv);
-                break;
-            case ';':
-                consume();
-                addToken<Semicolon>(";"sv);
-                break;
-            case '+':
-                consume();
-                addToken<Plus>("+"sv);
-                break;
-            case '@':
-                consume();
-                addToken<At>("@"sv);
-                break;
-            case '"':
+                continue;
+            }
+            if (peek() == '"') {
                 stringLiteral();
-                break;
-            default:
-                if (std::isspace(peek())) {
-                    consume();
-                    continue;
-                }
-                if (std::isdigit(peek())) {
-                    numberLiteral();
-                    break;
-                }
-                keywordOrIdentifier();
-                break;
+                continue;
+            }
+            if (std::isspace(peek())) {
+                consume();
+                continue;
+            }
+            if (std::isdigit(peek())) {
+                numberLiteral();
+                continue;
+            }
+            keywordOrIdentifier();
         }
+    } catch (const LexerError& error) {
+        std::cout << "Lexer error: " << error.what() << "\n";
     }
-    addToken<EndOfFile>(""sv);
+    addToken(TokenType::EndOfFile, ""sv);
     return std::move(mTokens);
 }
 
@@ -55,7 +50,7 @@ void Lexer::stringLiteral() {
         throw error("Expected string termination, got end of file.");
     }
     consume('"', "Expected '\"' at the end of a string literal.");
-    addToken<StringLiteral>(mSource.substr(startPosition, mCurrent - startPosition));
+    addToken(TokenType::StringLiteral, mSource.substr(startPosition, mCurrent - startPosition));
 }
 
 void Lexer::numberLiteral() {
@@ -68,7 +63,7 @@ void Lexer::numberLiteral() {
         throw error("Expected literal specifier at the end of a number literal, got end of file.");
     }
     consume('u', "Expected number literal specifier.");
-    addToken<U64Literal>(mSource.substr(startPosition, mCurrent - startPosition + 1));
+    addToken(TokenType::U64Literal, mSource.substr(startPosition, mCurrent - startPosition));
 }
 
 void Lexer::keywordOrIdentifier() {
@@ -80,15 +75,10 @@ void Lexer::keywordOrIdentifier() {
         consume();
     }
     const auto lexeme = mSource.substr(startPosition, mCurrent - startPosition);
-    if (lexeme == "const"sv) {
-        addToken<Const>(lexeme);
-    } else if (lexeme == "mutable"sv) {
-        addToken<Mutable>(lexeme);
-    } else if (lexeme == "print"sv) {
-        addToken<Print>(lexeme);
-    } else {
-        addToken<Identifier>(lexeme);
-    }
+
+    const auto token = tokenTypeFor(lexeme);
+    assert(token != TokenType::None);
+    addToken(token, lexeme);
 }
 
 constexpr bool Lexer::isAtEnd() const {
@@ -103,21 +93,21 @@ constexpr bool Lexer::check(char toCheck) const {
     return peek() == toCheck;
 }
 
-constexpr void Lexer::consume() {
+constexpr std::string_view Lexer::consume() {
     if (peek() == '\n') {
         ++mLine;
         mColumn = 0;
     } else {
         ++mColumn;
     }
-    ++mCurrent;
+    return mSource.substr(mCurrent++, 1);
 }
 
-constexpr void Lexer::consume(char toConsume, const std::string& errorMessage) {
+constexpr std::string_view Lexer::consume(char toConsume, const std::string& errorMessage) {
     if (!check(toConsume)) {
         throw LexerError(mLine, mColumn, errorMessage);
     }
-    consume();
+    return consume();
 }
 
 constexpr bool Lexer::match(char toMatch) {
@@ -127,6 +117,44 @@ constexpr bool Lexer::match(char toMatch) {
     consume();
     return true;
 }
+
 LexerError Lexer::error(const std::string& message) const {
     return LexerError{ mLine, mColumn, message };
+}
+
+void Lexer::addToken(TokenType type, std::string_view lexeme) {
+    mTokens.emplace_back(lexeme, mLine, mColumn, type);
+}
+
+constexpr TokenType Lexer::tokenTypeFor(char c) {
+    constexpr auto singleCharTokens =
+            std::to_array<std::pair<char, TokenType>>({
+                    { '(', TokenType::LeftParenthesis },
+                    { ')', TokenType::RightParenthesis },
+                    { '=', TokenType::Equals },
+                    { ';', TokenType::Semicolon },
+                    { '+', TokenType::Plus },
+                    { '@', TokenType::At },
+            });
+    for (const auto [singleChar, tokenType] : singleCharTokens) {
+        if (singleChar == c) {
+            return tokenType;
+        }
+    }
+    return TokenType::None;
+}
+
+constexpr TokenType Lexer::tokenTypeFor(std::string_view lexeme) {
+    constexpr auto keywordTokens =
+            std::to_array<std::pair<std::string_view, TokenType>>({
+                    { "const"sv, TokenType::Const },
+                    { "mutable"sv, TokenType::Mutable },
+                    { "print"sv, TokenType::Print },
+    });
+    for (const auto [keyword, tokenType] : keywordTokens) {
+        if (keyword == lexeme) {
+            return tokenType;
+        }
+    }
+    return TokenType::Identifier;
 }

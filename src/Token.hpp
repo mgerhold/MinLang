@@ -6,67 +6,51 @@
 
 #include "MinLang.hpp"
 #include <charconv>
+#include <optional>
 
-struct Token {
-    Token(std::string_view lexeme, uz line, uz column) : lexeme{ lexeme }, line{ line }, column{ column } {}
-    virtual ~Token() = default;
+enum class TokenType {
+    None,
+    Const,
+    Identifier,
+    Equals,
+    StringLiteral,
+    Semicolon,
+    Mutable,
+    U64Literal,
+    Plus,
+    Print,
+    At,
+    LeftParenthesis,
+    RightParenthesis,
+    EndOfFile,
+};
+
+struct Token final {
+    Token(std::string_view lexeme, uz line, uz column, TokenType type)
+        : lexeme{ lexeme },
+          line{ line },
+          column{ column },
+          type{ type } { }
 
     std::string_view lexeme;
     uz line;
     uz column;
-};
+    TokenType type;
 
-struct Const : public Token {
-    using Token::Token;
-};
-
-struct Identifier : public Token {
-    using Token::Token;
-};
-
-struct Equals : public Token {
-    using Token::Token;
-};
-
-struct StringLiteral : public Token {
-    using Token::Token;
-
-    [[nodiscard]] constexpr std::string_view value() const {
+    [[nodiscard]] std::optional<std::string_view> stringLiteralValue() const {
+        if (type != TokenType::StringLiteral) {
+            return {};
+        }
         return lexeme.substr(1, lexeme.size() - 2);
     }
-};
 
-struct Semicolon : public Token {
-    using Token::Token;
-};
-
-struct Mutable : public Token {
-    using Token::Token;
-};
-
-struct U64Literal : public Token {
-    using Token::Token;
-
-    [[nodiscard]] u64 value() const {
+    [[nodiscard]] std::optional<u64> u64LiteralValue() const {
+        if (type != TokenType::U64Literal) {
+            return {};
+        }
         u64 result;
         const auto fromCharsResult = std::from_chars(lexeme.data(), lexeme.data() + lexeme.size() - 1, result);
         assert(fromCharsResult.ec != std::errc::invalid_argument);
         return result;
     }
-};
-
-struct Plus : public Token {
-    using Token::Token;
-};
-
-struct Print : public Token {
-    using Token::Token;
-};
-
-struct At : public Token {
-    using Token::Token;
-};
-
-struct EndOfFile : public Token {
-    using Token::Token;
 };

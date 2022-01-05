@@ -17,10 +17,13 @@ endif ()
 
 set(TARGET_LIST
         MinLang
+        Sandbox
         )
 
-add_library(MinLang STATIC src/main.cpp src/Lexer.cpp src/Lexer.hpp src/Token.hpp src/MinLang.hpp src/LexerError.hpp)
+add_library(MinLang STATIC src/Lexer.cpp src/Lexer.hpp src/Token.hpp src/MinLang.hpp src/LexerError.hpp src/Parser.cpp src/Parser.hpp src/Expression.cpp src/Expression.hpp src/ParserError.hpp)
 target_include_directories(MinLang PUBLIC ${PROJECT_SOURCE_DIR}/src)
+add_executable(Sandbox src/main.cpp)
+target_link_libraries(Sandbox PRIVATE MinLang)
 
 foreach (target ${TARGET_LIST})
     # set warning levels
