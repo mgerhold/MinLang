@@ -5,14 +5,17 @@
 #include "Expression.hpp"
 #include "ExpressionVisitor.hpp"
 
-[[nodiscard]] Value U64LiteralExpr::accept(const ExpressionVisitor& visitor) {
-    return visitor.visit(*this);
+void U64LiteralExpr::accept(ExpressionVisitor& visitor) {
+    visitor.visit(*this);
 }
 
-[[nodiscard]] Value StringLiteralExpr::accept(const ExpressionVisitor& visitor) {
-    return visitor.visit(*this);
+void StringLiteralExpr::accept(ExpressionVisitor& visitor) {
+    visitor.visit(*this);
 }
 
-[[nodiscard]] Value GroupingExpr::accept(const ExpressionVisitor& visitor) {
-    return visitor.visit(*this);
+void GroupingExpr::accept(ExpressionVisitor& visitor) {
+    visitor.visit(*this);
+}
+void BinaryExpr::accept(ExpressionVisitor& visitor) {
+    visitor.visit(*this);
 }

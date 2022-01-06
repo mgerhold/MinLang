@@ -48,7 +48,17 @@ StmtNode Parser::printStatement() {
 }
 
 ExprNode Parser::expression() {
-    return primary();
+    return binary();
+}
+
+ExprNode Parser::binary() {
+    auto expression = primary();
+    while (match(Plus)) {
+        const auto operator_ = previous();
+        auto rhs = primary();
+        expression = std::make_unique<BinaryExpr>(previous(), std::move(expression), operator_, std::move(rhs));
+    }
+    return expression;
 }
 
 ExprNode Parser::primary() {

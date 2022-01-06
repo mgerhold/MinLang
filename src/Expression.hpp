@@ -11,8 +11,6 @@
 #include <memory>
 #include <variant>
 
-using Value = std::variant<u64, std::string>;
-
 struct ExpressionVisitor;
 
 struct Expression {
@@ -20,7 +18,7 @@ struct Expression {
     [[nodiscard]] virtual std::string toString() const = 0;
     virtual ~Expression() noexcept = default;
 
-    virtual Value accept(const ExpressionVisitor& visitor) = 0;
+    virtual void accept(ExpressionVisitor& visitor) = 0;
 
     Token token;
 };
@@ -34,7 +32,7 @@ struct U64LiteralExpr : public Expression {
         return std::to_string(token.u64LiteralValue().value()) + "u";
     }
 
-    [[nodiscard]] Value accept(const ExpressionVisitor& visitor) override;
+    void accept(ExpressionVisitor& visitor) override;
 };
 
 struct StringLiteralExpr : public Expression {
@@ -44,7 +42,7 @@ struct StringLiteralExpr : public Expression {
         return std::string{ token.lexeme };
     }
 
-    [[nodiscard]] Value accept(const ExpressionVisitor& visitor) override;
+    void accept(ExpressionVisitor& visitor) override;
 };
 
 struct GroupingExpr : public Expression {
@@ -56,7 +54,25 @@ struct GroupingExpr : public Expression {
         return std::format("({})", subExpression->toString());
     }
 
-    [[nodiscard]] Value accept(const ExpressionVisitor& visitor) override;
+    void accept(ExpressionVisitor& visitor) override;
 
     ExprNode subExpression;
+};
+
+struct BinaryExpr : public Expression {
+    BinaryExpr(Token token, ExprNode lhs, Token operator_, ExprNode rhs)
+        : Expression{ token },
+          lhs{ std::move(lhs) },
+          operator_{ operator_ },
+          rhs{ std::move(rhs) } { }
+
+    [[nodiscard]] std::string toString() const override {
+        return std::format("({} + {})", lhs->toString(), rhs->toString());
+    }
+
+    void accept(ExpressionVisitor& visitor) override;
+
+    ExprNode lhs;
+    Token operator_;
+    ExprNode rhs;
 };

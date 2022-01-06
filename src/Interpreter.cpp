@@ -4,20 +4,40 @@
 
 #include "Interpreter.hpp"
 
-Value Interpreter::visit(const U64LiteralExpr& expression) const {
+void Interpreter::visit(const U64LiteralExpr& expression) {
     assert(expression.token.u64LiteralValue());
-    return expression.token.u64LiteralValue().value();
+    result = expression.token.u64LiteralValue().value();
 }
 
-Value Interpreter::visit(const StringLiteralExpr& expression) const {
+void Interpreter::visit(const StringLiteralExpr& expression) {
     assert(expression.token.stringLiteralValue());
-    return std::string{ expression.token.stringLiteralValue().value() };
+    result = std::string{ expression.token.stringLiteralValue().value() };
 }
 
-Value Interpreter::visit(const GroupingExpr& expression) const {
-    return evaluate(expression.subExpression);
+void Interpreter::visit(const GroupingExpr& expression) {
+    evaluate(expression.subExpression);
 }
 
-Value Interpreter::evaluate(const ExprNode& expression) const {
-    return expression->accept(*this);
+void Interpreter::visit(const BinaryExpr& expression) {
+    evaluate(expression.lhs);
+    const auto lhsEvaluated = result;
+    evaluate(expression.rhs);
+    const auto rhsEvaluated = result;
+    switch (expression.operator_.type) {
+        case TokenType::Plus:
+            if (not holds_alternative<u64>(lhsEvaluated) or lhsEvaluated.index() != rhsEvaluated.index()) {
+                // TODO: throw runtime error
+                assert(false);
+            }
+            result = get<u64>(lhsEvaluated) + get<u64>(rhsEvaluated);
+            break;
+        default:
+            // TODO: throw runtime error
+            assert(false);
+            break;
+    }
+}
+
+void Interpreter::evaluate(const ExprNode& expression) {
+    expression->accept(*this);
 }

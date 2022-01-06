@@ -7,7 +7,8 @@
 #include "Expression.hpp"
 
 struct ExpressionVisitor {
-    virtual Value visit(const U64LiteralExpr& expression) const = 0;
-    virtual Value visit(const StringLiteralExpr& expression) const = 0;
-    virtual Value visit(const GroupingExpr& expression) const = 0;
+    virtual void visit(const U64LiteralExpr& expression) = 0;
+    virtual void visit(const StringLiteralExpr& expression) = 0;
+    virtual void visit(const GroupingExpr& expression) = 0;
+    virtual void visit(const BinaryExpr& expression) = 0;
 };

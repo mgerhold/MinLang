@@ -11,7 +11,8 @@
 
 /* statement            -> expression ";"
  *                       | "print" expression ";" ;
- * expression           -> primary ;
+ * expression           -> binary ;
+ * binary               -> primary ("+" primary)* ;
  * primary              -> STRING_LITERAL
  *                       | U64_LITERAL
  *                       | grouping ;
@@ -33,6 +34,7 @@ private:
     [[nodiscard]] StmtNode exprStatement();
     [[nodiscard]] StmtNode printStatement();
     [[nodiscard]] ExprNode expression();
+    [[nodiscard]] ExprNode binary();
     [[nodiscard]] ExprNode primary();
     [[nodiscard]] ExprNode grouping();
     [[nodiscard]] bool isAtEnd() const;

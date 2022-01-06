@@ -9,11 +9,20 @@
 #include "Expression.hpp"
 #include <variant>
 
+using Value = std::variant<u64, std::string>;
+
 class Interpreter : public ExpressionVisitor {
 public:
-    [[nodiscard]] Value visit(const U64LiteralExpr& expression) const override;
-    [[nodiscard]] Value visit(const StringLiteralExpr& expression) const override;
-    [[nodiscard]] Value visit(const GroupingExpr& expression) const override;
+    void visit(const U64LiteralExpr& expression) override;
+    void visit(const StringLiteralExpr& expression) override;
+    void visit(const GroupingExpr& expression) override;
+    void visit(const BinaryExpr& expression) override;
 
-    [[nodiscard]] Value evaluate(const ExprNode& expression) const;
+    [[nodiscard]] Value getResult() const {
+        return result;
+    }
+    void evaluate(const ExprNode& expression);
+
+private:
+    Value result{};
 };
