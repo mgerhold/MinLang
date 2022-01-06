@@ -6,9 +6,11 @@
 
 #include "Token.hpp"
 #include "Expression.hpp"
+#include "Statement.hpp"
 #include <vector>
 
-/*
+/* statement            -> expression ";"
+ *                       | "print" expression ";" ;
  * expression           -> primary ;
  * primary              -> STRING_LITERAL
  *                       | U64_LITERAL
@@ -16,23 +18,33 @@
  * grouping             -> "(" expression ")" ;
  */
 
+using StatementList = std::vector<StmtNode>;
+
 class Parser {
 public:
     explicit Parser(const std::vector<Token>& tokens);
-    [[nodiscard]] ASTNode parse();
+    [[nodiscard]] StatementList parse();
+    [[nodiscard]] constexpr bool ok() const {
+        return not hadError;
+    }
 
 private:
-    [[nodiscard]] ASTNode expression();
-    [[nodiscard]] ASTNode primary();
-    [[nodiscard]] ASTNode grouping();
+    [[nodiscard]] StmtNode statement();
+    [[nodiscard]] StmtNode exprStatement();
+    [[nodiscard]] StmtNode printStatement();
+    [[nodiscard]] ExprNode expression();
+    [[nodiscard]] ExprNode primary();
+    [[nodiscard]] ExprNode grouping();
     [[nodiscard]] bool isAtEnd() const;
     [[nodiscard]] const Token& peek() const;
     Token consume();
     Token consume(TokenType expect, std::string_view errorMessage);
     [[nodiscard]] bool check(TokenType type) const;
     [[nodiscard]] bool match(TokenType type);
+    [[nodiscard]] Token previous() const;
 
 private:
     const std::vector<Token>& mTokens;
     uz mCurrent{ 0 };
+    bool hadError{ false };
 };

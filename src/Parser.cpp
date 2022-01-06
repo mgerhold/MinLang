@@ -14,20 +14,44 @@ Parser::Parser(const std::vector<Token>& tokens) : mTokens{ tokens } {
     assert(tokens.back().type == TokenType::EndOfFile);
 }
 
-ASTNode Parser::parse() {
+StatementList Parser::parse() {
+    StatementList statements;
     try {
-        return expression();
+        while (not isAtEnd()) {
+            statements.push_back(statement());
+        }
     } catch (const ParserError& error) {
         std::cerr << "Parser error: " << error.what() << "\n";
+        hadError = true;
     }
-    return {};
+    return statements;
 }
 
-ASTNode Parser::expression() {
+StmtNode Parser::statement() {
+    if (match(Print)) {
+        return printStatement();
+    }
+    return exprStatement();
+}
+
+StmtNode Parser::exprStatement() {
+    auto expr = expression();
+    consume(Semicolon, "Expected ';' at the end of expression statement."sv);
+    return std::make_unique<ExpressionStatement>(previous(), std::move(expr));
+}
+
+StmtNode Parser::printStatement() {
+    auto toPrint = expression();
+    auto statement = std::make_unique<PrintStatement>(previous(), std::move(toPrint));
+    consume(Semicolon, "Expected ';' after the expression that should be printed."sv);
+    return statement;
+}
+
+ExprNode Parser::expression() {
     return primary();
 }
 
-ASTNode Parser::primary() {
+ExprNode Parser::primary() {
     if (match(LeftParenthesis)) {
         return grouping();
     }
@@ -40,7 +64,7 @@ ASTNode Parser::primary() {
     throw ParserError{ peek(), "Expected primary expression."sv };
 }
 
-ASTNode Parser::grouping() {
+ExprNode Parser::grouping() {
     auto subExpression = expression();
     consume(RightParenthesis, "Expecting ')' at the end of grouping expression."sv);
     return subExpression;
@@ -78,4 +102,8 @@ bool Parser::match(TokenType type) {
 
 bool Parser::check(TokenType type) const {
     return peek().type == type;
+}
+
+Token Parser::previous() const {
+    return mTokens.at(mCurrent - 1);
 }

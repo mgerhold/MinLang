@@ -34,8 +34,8 @@ private:
 
 private:
     uz mCurrent{ 0 };
-    uz mLine{ 0 };
-    uz mColumn{ 0 };
+    uz mLine{ 1 };
+    uz mColumn{ 1 };
     std::string_view mSource;
     std::vector<Token> mTokens;
 };

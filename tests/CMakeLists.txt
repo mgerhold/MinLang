@@ -1,4 +1,4 @@
-add_executable(Tests Main.test.cpp Lexer.test.cpp)
+add_executable(Tests Main.test.cpp Lexer.test.cpp Parser.test.cpp Interpreter.test.cpp)
 
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(Tests PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)

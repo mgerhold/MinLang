@@ -9,16 +9,23 @@
 #include <format>
 #include <string>
 #include <memory>
+#include <variant>
+
+using Value = std::variant<u64, std::string>;
+
+struct ExpressionVisitor;
 
 struct Expression {
     explicit Expression(Token token) : token{ token } { }
     [[nodiscard]] virtual std::string toString() const = 0;
     virtual ~Expression() noexcept = default;
 
+    virtual Value accept(const ExpressionVisitor& visitor) = 0;
+
     Token token;
 };
 
-using ASTNode = std::unique_ptr<Expression>;
+using ExprNode = std::unique_ptr<Expression>;
 
 struct U64LiteralExpr : public Expression {
     using Expression::Expression;
@@ -26,18 +33,22 @@ struct U64LiteralExpr : public Expression {
     [[nodiscard]] std::string toString() const override {
         return std::to_string(token.u64LiteralValue().value()) + "u";
     }
+
+    [[nodiscard]] Value accept(const ExpressionVisitor& visitor) override;
 };
 
 struct StringLiteralExpr : public Expression {
     using Expression::Expression;
 
     [[nodiscard]] std::string toString() const override {
-        return std::format("\"{}\"", token.lexeme);
+        return std::string{ token.lexeme };
     }
+
+    [[nodiscard]] Value accept(const ExpressionVisitor& visitor) override;
 };
 
 struct GroupingExpr : public Expression {
-    GroupingExpr(Token token, ASTNode subExpression)
+    GroupingExpr(Token token, ExprNode subExpression)
         : Expression{ token },
           subExpression{ std::move(subExpression) } { }
 
@@ -45,5 +56,7 @@ struct GroupingExpr : public Expression {
         return std::format("({})", subExpression->toString());
     }
 
-    ASTNode subExpression;
+    [[nodiscard]] Value accept(const ExpressionVisitor& visitor) override;
+
+    ExprNode subExpression;
 };

@@ -96,7 +96,7 @@ constexpr bool Lexer::check(char toCheck) const {
 constexpr std::string_view Lexer::consume() {
     if (peek() == '\n') {
         ++mLine;
-        mColumn = 0;
+        mColumn = 1;
     } else {
         ++mColumn;
     }
