@@ -134,6 +134,8 @@ constexpr TokenType Lexer::tokenTypeFor(char c) {
                     { '=', TokenType::Equals },
                     { ';', TokenType::Semicolon },
                     { '+', TokenType::Plus },
+                    { '-', TokenType::Minus },
+                    { '*', TokenType::Asterisk },
                     { '@', TokenType::At },
             });
     for (const auto [singleChar, tokenType] : singleCharTokens) {

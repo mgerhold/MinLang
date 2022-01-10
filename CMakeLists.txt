@@ -20,7 +20,7 @@ set(TARGET_LIST
         Sandbox
         )
 
-add_library(MinLang STATIC src/Lexer.cpp src/Lexer.hpp src/Token.hpp src/MinLang.hpp src/LexerError.hpp src/Parser.cpp src/Parser.hpp src/Expression.hpp src/ParserError.hpp src/Statement.hpp src/ExpressionVisitor.hpp src/Interpreter.cpp src/Interpreter.hpp src/Expression.cpp)
+add_library(MinLang STATIC src/Lexer.cpp src/Lexer.hpp src/Token.hpp src/MinLang.hpp src/LexerError.hpp src/Parser.cpp src/Parser.hpp src/Expression.hpp src/ParserError.hpp src/Statement.hpp src/ExpressionVisitor.hpp src/Interpreter.cpp src/Interpreter.hpp src/Expression.cpp src/StatementVisitor.hpp src/Statement.cpp src/TypeChecker.cpp src/TypeChecker.hpp src/TypeError.hpp src/DataTypes.hpp src/magic_enum/magic_enum.hpp)
 target_include_directories(MinLang PUBLIC ${PROJECT_SOURCE_DIR}/src)
 add_executable(Sandbox src/main.cpp)
 target_link_libraries(Sandbox PRIVATE MinLang)

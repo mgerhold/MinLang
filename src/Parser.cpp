@@ -48,17 +48,35 @@ StmtNode Parser::printStatement() {
 }
 
 ExprNode Parser::expression() {
-    return binary();
+    return term();
 }
 
-ExprNode Parser::binary() {
-    auto expression = primary();
+ExprNode Parser::term() {
+    auto expression = factor();
     while (match(Plus)) {
         const auto operator_ = previous();
-        auto rhs = primary();
+        auto rhs = factor();
         expression = std::make_unique<BinaryExpr>(previous(), std::move(expression), operator_, std::move(rhs));
     }
     return expression;
+}
+
+ExprNode Parser::factor() {
+    auto expression = unary();
+    while (match(Asterisk)) {
+        const auto operator_ = previous();
+        auto rhs = unary();
+        expression = std::make_unique<BinaryExpr>(previous(), std::move(expression), operator_, std::move(rhs));
+    }
+    return expression;
+}
+
+ExprNode Parser::unary() {
+    if (match(Minus) or match(At) or match(Plus)) {
+        const auto operator_ = previous(); // separate variable because of unspecified argument evaluation in next call
+        return std::make_unique<UnaryExpr>(operator_, unary());
+    }
+    return primary();
 }
 
 ExprNode Parser::primary() {
@@ -113,7 +131,6 @@ bool Parser::match(TokenType type) {
 bool Parser::check(TokenType type) const {
     return peek().type == type;
 }
-
 Token Parser::previous() const {
     return mTokens.at(mCurrent - 1);
 }

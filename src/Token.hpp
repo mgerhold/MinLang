@@ -18,6 +18,8 @@ enum class TokenType {
     Mutable,
     U64Literal,
     Plus,
+    Minus,
+    Asterisk,
     Print,
     At,
     LeftParenthesis,

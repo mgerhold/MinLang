@@ -11,4 +11,5 @@ struct ExpressionVisitor {
     virtual void visit(const StringLiteralExpr& expression) = 0;
     virtual void visit(const GroupingExpr& expression) = 0;
     virtual void visit(const BinaryExpr& expression) = 0;
+    virtual void visit(const UnaryExpr& expression) = 0;
 };

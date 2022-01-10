@@ -16,6 +16,11 @@ void StringLiteralExpr::accept(ExpressionVisitor& visitor) {
 void GroupingExpr::accept(ExpressionVisitor& visitor) {
     visitor.visit(*this);
 }
+
 void BinaryExpr::accept(ExpressionVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+void UnaryExpr::accept(ExpressionVisitor& visitor) {
     visitor.visit(*this);
 }
